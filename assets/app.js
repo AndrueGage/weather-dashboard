@@ -1,4 +1,4 @@
-
+// This function is to display the current day data by grabbing the elements by ID and displaying them, it also creates an img element and displays the img that is in the API.
 function displayToday(data) {
     const box = document.getElementById('today-box');
     box.innerHTML = '';
@@ -20,7 +20,7 @@ function displayToday(data) {
     img.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`
     box.appendChild(img);
 }
-
+// This function creates html elements for the five day data to be displayed in and add styling.
 function displayFiveDay(data) {
     const box = document.getElementById('five-day-box')
     box.innerHTML = '';
@@ -59,55 +59,123 @@ function displayFiveDay(data) {
         box.appendChild(div);
     })
 }
+
+async function runFetch(city) {
+    try {
+        const todayData = await fetchWeatherData(city, 'weather');
+        const fiveDayData = await fetchWeatherData(city, 'forecast');
+
+        // Display today and 5 day data after fetch
+        displayToday(todayData);
+        displayFiveDay(fiveDayData);
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+
+}
+
 function displaySearchHistory(data) {
     const box = document.getElementById('button-box');
+    box.innerHTML = '';
+    const heading = document.createElement('p')
+    heading.textContent = 'Saved Cities'
+    heading.classList.add('fw-bold', 'my-1')
+    box.appendChild(heading)
+
     data.forEach(item => {
-        console.log(item)
         let btn = document.createElement('button');
-        btn.classList.add('btn btn-primary');
+        btn.classList.add('btn', 'btn-primary', 'col-12', 'my-1');
         btn.textContent = item;
+        //Causes infinte loop
+        btn.addEventListener("click", () => runFetch(item));
         box.appendChild(btn)
     })
 }
 
-async function init() {
-    const history = await JSON.parse(localStorage.getItem('cityArr'))
-    if (history.length !== 0) {
+function init() {
+    // Display search history from localStorage on page load
+    const history = JSON.parse(localStorage.getItem('cityArr'))
+
+    // If it exists, run a fetch on the 0 index city for content on page load
+    if (history) {
+        runFetch(history[0])
+    }
+
+    // If it doesn't exist, we need to create it
+    if (history === null) {
+        let tempArr = []
+        localStorage.setItem('cityArr', JSON.stringify(tempArr))
+    } else {
+        // Display history in any case
         displaySearchHistory(history)
     }
 }
 
 
-async function fetchFiveDay(city) {
-    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=f340ce323ac79b293e9c0699e025d466&units=imperial`
-    const response = await fetch(url)
-    return await response.json();
-}
+async function fetchWeatherData(city, type) {
+    const apiKey = 'f340ce323ac79b293e9c0699e025d466';
+    const units = 'imperial';
+    // type includes 'forcast' for 5 day data, and 'weather' for today only
+    const apiUrl = `https://api.openweathermap.org/data/2.5/${type}?q=${city}&appid=${apiKey}&units=${units}`;
 
-async function fetchNowData(city) {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=f340ce323ac79b293e9c0699e025d466&units=imperial`
-    const response = await fetch(url)
-    return await response.json();
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching weather data:', error.message);
+    }
 }
 
 async function startSearch(event) {
     event.preventDefault();
+    // Get formdata for city entered
     const formData = new FormData(event.target);
-    const todayData = await fetchNowData(formData.get('city'));
-    const fiveDayData = await fetchFiveDay(formData.get('city'));
-    displayToday(todayData);
-    displayFiveDay(fiveDayData);
+    var city = formData.get('city');
 
-    if (formData.get('city') != '') {
-        let tempArr = JSON.parse(localStorage.getItem('cityArr'))
-        
-            
-        tempArr.push(formData.get('city'))
-            
-        
+    try {
+        const todayData = await fetchWeatherData(city, 'weather');
+        const fiveDayData = await fetchWeatherData(city, 'forecast');
 
-        localStorage.setItem('cityArr', JSON.stringify(tempArr))
+        // Display today and 5 day data after fetch if successful
+        if (todayData.cod !== '404' && fiveDayData.cod !== '404') {
+            console.log(todayData)
+            displayToday(todayData);
+            displayFiveDay(fiveDayData);
+
+            // Check if city is not empty
+            if (city != '') {
+                let tempArr = JSON.parse(localStorage.getItem('cityArr'))
+                // Check if the city exists in localStorage
+                if (!tempArr.includes(city)) {
+                    // If it doesn't exit, add it and append the country code for clarity
+                    let cityConcat = `${city}, ${todayData.sys.country}`
+                    tempArr.push(cityConcat)
+                    localStorage.setItem('cityArr', JSON.stringify(tempArr))
+                }
+                // Display updated search history in any case
+                displaySearchHistory(tempArr)
+            }
+        } else {
+            throw new Error(`Bad status codes: \n Weather API: ${todayData.cod} \n Forecast API: ${fiveDayData.cod}`)
+        }
+
+    } catch (error) {
+        console.error(error);
+        // show toast from bootstrap docs
+        const toastTrigger = document.getElementById('liveToastBtn')
+        const toastLiveExample = document.getElementById('liveToast')
+        const toastBody = document.getElementById('toast-body');
+
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+        toastTrigger.addEventListener('click', () => {
+            toastBootstrap.show()
+        })
+        toastTrigger.click();
+        toastBody.textContent = `You entered '${city}'. This city does not exist.`
     }
-}  
+}
+
 
 init()

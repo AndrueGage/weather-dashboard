@@ -17,17 +17,33 @@
         </div>
     </header>
     <main class="container">
-        <div class="row">
+        <div class="row mt-5 gap-1">
             <aside class="col-3">
                 <h2>Search for a City:</h2>
-                <form onsubmit="startSearch(event)" class="input-group">
-                    <input id="city" name="city" placeholder="Enter City Name"  class="form-control rounded" aria-label="Search" aria-describedby="search-addon" />
+                <form id="weather-search" onsubmit="startSearch(event)" class="input-group">
+                    <input id="city" name="city" placeholder="Enter City Name" class="form-control rounded"
+                        aria-label="Search" aria-describedby="search-addon" type="text" pattern="^[A-Za-z\s.'\-]+$"
+                        title="Please enter at least 3 alphabetical characters" required />
                     <button class="btn btn-outline-primary" type="submit">Search</button>
                 </form>
+                <button type="button" class="btn btn-primary" style="display: none;" id="liveToastBtn">Show live
+                    toast</button>
+
+                <div class="toast-container position-fixed top-10 start-50 translate-middle p-3">
+                    <div id="liveToast" class="toast bg-danger-subtle" role="alert" aria-live="assertive"
+                        aria-atomic="true">
+                        <div class="toast-header">
+                            <strong class="me-auto" style="font-size: 25px !important;">❗Error</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div id="toast-body" class="toast-body" style="font-size: 20px !important;">
+                        </div>
+                    </div>
+                </div>
                 <div class="col" id="button-box">
                 </div>
             </aside>
-            <div class="col-9">
+            <div class="col-8">
                 <h3 id="city-name"></h3>
                 <div class="row">
                     <div class="col">
