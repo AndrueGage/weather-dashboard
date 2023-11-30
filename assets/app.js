@@ -74,7 +74,7 @@ async function runFetch(city) {
     }
 
 }
-
+// This function shows the search history from localStorage and displays them in the DOM. It also adds styling to the created html elements.
 function displaySearchHistory(data) {
     const box = document.getElementById('button-box');
     box.innerHTML = '';
