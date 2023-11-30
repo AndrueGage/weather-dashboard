@@ -8,7 +8,8 @@ This is a single page weather dashboard application. You can search cities all a
 - [Contact](#contact)
   
 ## Preview
-![image](./Assets/image.png)
+![image](![image](https://github.com/AndrueGage/weather-dashboard/assets/147120878/3a82897a-d128-464c-8c55-92a690243b6a)
+)
 
 Visit the live site [here!](https://andruegage.github.io/weather-dashboard/)
 
